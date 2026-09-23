@@ -1,0 +1,57 @@
+version: "3.8"
+
+services:
+  waf:
+    build: ./mock-waf
+    container_name: mock-waf
+    ports:
+      - "5000:5000"
+    environment:
+      - INTEGRATION_URL=http://integration:8000
+    networks:
+      - security-network
+
+  vuln-scanner:
+    build: ./mock-vuln-scanner
+    container_name: mock-vuln-scanner
+    ports:
+      - "5001:5001"
+    environment:
+      - INTEGRATION_URL=http://integration:8000
+    networks:
+      - security-network
+
+  ids:
+    build: ./mock-ids
+    container_name: mock-ids
+    ports:
+      - "5002:5002"
+    environment:
+      - INTEGRATION_URL=http://integration:8000
+    networks:
+      - security-network
+
+  integration:
+    build: ./integration-service
+    container_name: security-integration
+    ports:
+      - "8000:8000"
+    environment:
+      - SIEM_URL=http://siem:3000
+      - ENVIRONMENT=development
+    depends_on:
+      - siem
+    networks:
+      - security-network
+
+  siem:
+    build: ./mock-siem
+    container_name: mock-siem
+    ports:
+      - "3000:3000"
+    networks:
+      - security-network
+
+networks:
+  security-network:
+    driver: bridge
